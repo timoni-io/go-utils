@@ -53,5 +53,7 @@ func (h *Hub[T]) Unregister(client Client[T]) {
 }
 
 func (h *Hub[T]) Broadcast(data T) {
-	h.broadcast <- data
+	if len(h.clients) > 0 {
+		h.broadcast <- data
+	}
 }
