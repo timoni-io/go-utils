@@ -1,8 +1,10 @@
 package maps
 
 import (
-	"github.com/timoni-io/go-utils/types"
+	"context"
 	"strings"
+
+	"github.com/timoni-io/go-utils/types"
 )
 
 type Bucket[V any] struct {
@@ -61,10 +63,10 @@ func (b Bucket[V]) Iter() types.Iterator[string, V] {
 	return out
 }
 
-func (b Bucket[V]) Watch() types.Watcher[string, V] {
+func (b Bucket[V]) Watch(ctx context.Context) types.Watcher[string, V] {
 	out := make(chan types.WatchMsg[string, V])
 	go func() {
-		for event := range b.m.Hub.Register() {
+		for event := range b.m.Hub.Register(ctx) {
 			if strings.HasPrefix(event.Key, b.pfx) {
 				out <- types.WatchMsg[string, V]{
 					Event: event.Event,

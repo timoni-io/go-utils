@@ -42,14 +42,15 @@ func (h *Hub[T]) run() {
 	}
 }
 
-func (h *Hub[T]) Register() Client[T] {
+func (h *Hub[T]) Register(ctx context.Context) Client[T] {
 	client := make(Client[T])
 	h.register <- client
-	return client
-}
 
-func (h *Hub[T]) Unregister(client Client[T]) {
-	h.unregister <- client
+	go func() {
+		<-ctx.Done()
+		h.unregister <- client
+	}()
+	return client
 }
 
 func (h *Hub[T]) Broadcast(data T) {
