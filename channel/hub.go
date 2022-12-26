@@ -1,6 +1,9 @@
 package channel
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type Client[T any] chan T
 
@@ -35,9 +38,16 @@ func (h *Hub[T]) run() {
 			delete(h.clients, client)
 			close(client)
 		case message := <-h.broadcast:
+			t := time.NewTicker(100 * time.Millisecond)
 			for client := range h.clients {
-				client <- message
+				//send with timeout
+				select {
+				case client <- message:
+					t.Reset(100 * time.Millisecond)
+				case <-t.C:
+				}
 			}
+			t.Stop()
 		}
 	}
 }
